@@ -22,7 +22,7 @@ export const dockerTrackBaseUpdates = (env: NodeJS.ProcessEnv) => ({
                 "application/vnd.oci.image.manifest.v1+json",
                 "application/vnd.docker.distribution.manifest.v2+json"
             ].join(", ");
-            let manifestResp = await axios.get(manifestUrl, {
+            const manifestResp = await axios.get(manifestUrl, {
                 headers: {
                     Accept: acceptHeaders,
                     Authorization: `Bearer ${token}`

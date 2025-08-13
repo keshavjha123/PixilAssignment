@@ -28,7 +28,7 @@ export const dockerCompareImages = (env: NodeJS.ProcessEnv) => ({
                 "application/vnd.oci.image.manifest.v1+json",
                 "application/vnd.docker.distribution.manifest.v2+json"
             ].join(", ");
-            let manifestResp = await axios.get(url, {
+            const manifestResp = await axios.get(url, {
                 headers: {
                     Accept: acceptHeaders,
                     Authorization: `Bearer ${token}`
