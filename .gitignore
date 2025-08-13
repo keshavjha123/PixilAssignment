@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+Assignment/
+
+ASSIGNMENT_CHECKLIST.md
+IMPLEMENTATION.md
+SUMMARY_REPORT.md
