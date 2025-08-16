@@ -1,5 +1,5 @@
 import { z } from "zod";
-import axios from "axios";
+import { getImageStats } from "../dockerhubFunctions/imageStats";
 
 export const dockerGetStats = (env: NodeJS.ProcessEnv) => ({
     name: "docker_get_stats",
@@ -8,29 +8,38 @@ export const dockerGetStats = (env: NodeJS.ProcessEnv) => ({
     outputSchema: { pull_count: z.number(), star_count: z.number() },
     handler: async (input: { namespace: string; repository: string }) => {
         try {
-            const repo = `${input.namespace}/${input.repository}`;
-            const resp = await axios.get(`https://hub.docker.com/v2/repositories/${repo}`);
-            const data = resp.data;
+            const stats = await getImageStats(input.namespace, input.repository, env.DOCKERHUB_TOKEN);
             return {
                 content: [
                     {
                         type: "text" as const,
-                        text: `Stats for ${repo}: ${data.pull_count} pulls, ${data.star_count} stars.`
+                        text: `Stats for ${input.namespace}/${input.repository}: ${stats.pull_count} pulls, ${stats.star_count} stars.`
                     }
                 ],
-                pull_count: data.pull_count,
-                star_count: data.star_count
+                structuredContent: {
+                    pull_count: stats.pull_count,
+                    star_count: stats.star_count
+                }
             };
-        } catch (err: any) {
+        } catch (err: unknown) {
+            let message = 'Unknown error';
+            if (typeof err === 'object' && err !== null && 'response' in err) {
+                // @ts-expect-error: dynamic property access
+                message = err?.response?.data?.detail || err?.message || message;
+            } else if (err instanceof Error) {
+                message = err.message;
+            }
             return {
                 content: [
                     {
                         type: "text" as const,
-                        text: `Failed to retrieve stats: ${err?.response?.data?.detail || err.message}`
+                        text: `Failed to retrieve stats: ${message}`
                     }
                 ],
-                pull_count: 0,
-                star_count: 0
+                structuredContent: {
+                    pull_count: 0,
+                    star_count: 0
+                }
             };
         }
     }
