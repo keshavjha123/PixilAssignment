@@ -21,11 +21,13 @@ Welcome to the DockerHub MCP Server documentation! This comprehensive guide cove
 ### Setup Guides
 - **[CLAUDE_SETUP.md](CLAUDE_SETUP.md)** - Step-by-step Claude Desktop integration
 - **[AUTHENTICATION.md](AUTHENTICATION.md)** - DockerHub token setup and security
+- **[DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)** - Complete Docker deployment guide
 
 ### Configuration Files
 - **`.env.example`** - Environment variable template
 - **`claude_desktop_config.json`** - MCP client configuration example
 - **`docker-compose.yml`** - Local development setup
+- **`DOCKER_QUICKSTART.md`** - Quick Docker setup instructions
 
 ## 📚 API Reference
 
