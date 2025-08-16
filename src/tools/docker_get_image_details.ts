@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DockerHubClient } from "../dockerhub/client";
+import { getImageDetails } from "../dockerhubFunctions/imageDetails";
 
 export const dockerGetImageDetails = (env: NodeJS.ProcessEnv) => ({
     name: "docker_get_image_details",
@@ -7,11 +7,7 @@ export const dockerGetImageDetails = (env: NodeJS.ProcessEnv) => ({
     inputSchema: { namespace: z.string(), repository: z.string() },
     outputSchema: { details: z.any() },
     handler: async (input: { namespace: string; repository: string }) => {
-        const client = new DockerHubClient({
-            username: env.DOCKERHUB_USERNAME,
-            token: env.DOCKERHUB_TOKEN
-        });
-        const details = await client.getImageDetails(input.namespace, input.repository);
+        const details = await getImageDetails(input.namespace, input.repository, env.DOCKERHUB_TOKEN);
         return {
             content: [
                 {
@@ -19,7 +15,9 @@ export const dockerGetImageDetails = (env: NodeJS.ProcessEnv) => ({
                     text: `Details for ${input.namespace}/${input.repository}`
                 }
             ],
-            details
+            structuredContent: {
+                results: details
+            }
         };
     }
 });
