@@ -20,10 +20,12 @@ A production-ready Model Context Protocol (MCP) server that provides comprehensi
 - **docker_track_base_updates** - Check if base images have updates
 - **docker_estimate_pull_size** - Calculate download size for an image
 - **docker_delete_tag** - Delete a tag from your private repository
+- **docker_cache_info** - Monitor cache performance and statistics
 
 ### Key Capabilities
 - ✅ **MCP Client Compatible** - Works with Claude Desktop, Cursor, Cline, and other MCP clients
 - ✅ **Private Registry Support** - Access private DockerHub repositories with JWT authentication
+- ✅ **Smart Caching System** - Intelligent TTL-based caching with LRU eviction for optimal performance
 - ✅ **Rate Limit Handling** - Intelligent request management for DockerHub's API limits
 - ✅ **Comprehensive Error Handling** - Graceful fallbacks and clear error messages
 - ✅ **TypeScript Implementation** - Full type safety and excellent developer experience
@@ -128,7 +130,7 @@ This starts:
 For detailed Docker deployment instructions, see [Docker Deployment Guide](docs/DOCKER_DEPLOYMENT.md).
 - The MCP server
 - A local Docker registry for testing
-- Redis for caching (future enhancement)
+- Smart caching layer for performance optimization
 
 ## 🔌 MCP Client Integration
 
@@ -292,7 +294,7 @@ sudo systemctl start dockerhub-mcp
 ## 📋 Roadmap
 
 ### Immediate Priorities
-- [ ] Persistent caching with Redis
+- [ ] Persistent caching with Redis (in-memory caching implemented)
 - [ ] Rate limit visualization
 - [ ] Batch operations
 - [ ] Enhanced error recovery
@@ -316,8 +318,8 @@ sudo systemctl start dockerhub-mcp
 
 **Rate Limiting:**
 - Use authenticated requests when possible
-- Implement caching for frequently accessed data
-- Consider request queuing for high-volume usage
+- Built-in smart caching reduces API calls automatically
+- Intelligent request queuing handles high-volume usage
 
 **Connection Issues:**
 - Verify network connectivity to DockerHub

@@ -455,6 +455,54 @@ Get detailed information about a specific tag including creation date, size, and
 }
 ```
 
+### docker_cache_info
+
+Monitor smart cache performance and statistics.
+
+**Input:**
+```json
+{
+  "action": "info|stats|clear"
+}
+```
+
+**Output:**
+```json
+{
+  "cache": {
+    "info": {
+      "config": {
+        "maxSize": 2000,
+        "defaultTTL": 1800000,
+        "cleanupInterval": 300000,
+        "enableStats": true
+      },
+      "stats": {
+        "totalRequests": 150,
+        "cacheHits": 120,
+        "cacheMisses": 30,
+        "hitRate": 80,
+        "entries": 25,
+        "memoryUsage": 1024000
+      }
+    }
+  }
+}
+```
+
+**Example:**
+```bash
+# Get cache statistics
+{
+  "action": "stats"
+}
+
+# Clear cache
+{
+  "action": "clear"
+}
+```
+
 ## Rate Limiting
 
 DockerHub enforces rate limits:
@@ -466,7 +514,8 @@ The server automatically handles rate limiting and implements fallback strategie
 ## Best Practices
 
 1. **Use authentication** for better rate limits and private repository access
-2. **Cache results** when possible to reduce API calls
-3. **Handle errors gracefully** in your client application
-4. **Monitor usage** to avoid hitting rate limits
-5. **Use specific tags** instead of 'latest' for reproducible results
+2. **Leverage built-in caching** - static data is automatically cached for optimal performance
+3. **Monitor cache performance** using the `docker_cache_info` tool
+4. **Handle errors gracefully** in your client application
+5. **Monitor usage** to avoid hitting rate limits
+6. **Use specific tags** instead of 'latest' for reproducible results
