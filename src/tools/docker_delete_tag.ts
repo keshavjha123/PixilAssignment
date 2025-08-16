@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DockerHubClient } from "../dockerhub/client";
+import { deleteDockerHubTag } from "../dockerhubFunctions/deleteTag";
 
 export const dockerDeleteTag = (env: NodeJS.ProcessEnv) => ({
     name: "docker_delete_tag",
@@ -7,33 +7,38 @@ export const dockerDeleteTag = (env: NodeJS.ProcessEnv) => ({
     inputSchema: { namespace: z.string(), repository: z.string(), tag: z.string() },
     outputSchema: { success: z.boolean(), message: z.string() },
     handler: async (input: { namespace: string; repository: string; tag: string }) => {
-        const client = new DockerHubClient({
-            username: env.DOCKERHUB_USERNAME,
-            token: env.DOCKERHUB_TOKEN
-        });
         try {
-            // DockerHub API: DELETE /repositories/{namespace}/{repository}/tags/{tag}/
-            await client["axios"].delete(`/repositories/${input.namespace}/${input.repository}/tags/${input.tag}/`);
+            const result = await deleteDockerHubTag(input.namespace, input.repository, input.tag, env.DOCKERHUB_TOKEN);
+            
             return {
                 content: [
                     {
                         type: "text" as const,
-                        text: `Deleted tag ${input.tag} from ${input.namespace}/${input.repository}`
+                        text: result.success 
+                            ? `Deleted tag ${input.tag} from ${input.namespace}/${input.repository}`
+                            : `Failed to delete tag ${input.tag} from ${input.namespace}/${input.repository}: ${result.message}`
                     }
                 ],
-                success: true,
-                message: `Tag ${input.tag} deleted successfully.`
+                structuredContent: {
+                    success: result.success,
+                    message: result.message
+                }
+                
+                
             };
-        } catch (err: any) {
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
             return {
                 content: [
                     {
                         type: "text" as const,
-                        text: `Failed to delete tag ${input.tag} from ${input.namespace}/${input.repository}: ${err?.response?.data?.detail || err.message}`
+                        text: `Failed to delete tag ${input.tag} from ${input.namespace}/${input.repository}: ${errorMessage}`
                     }
                 ],
-                success: false,
-                message: err?.response?.data?.detail || err.message
+                structuredContent: {
+                    success: false,
+                    message: errorMessage
+                }
             };
         }
     }
