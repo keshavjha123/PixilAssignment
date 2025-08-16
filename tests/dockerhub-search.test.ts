@@ -1,12 +1,8 @@
-import { DockerHubClient } from '../src/dockerhub/client';
+import { searchImages } from '../src/dockerhubFunctions/searchImages';
 
-describe('DockerHubClient', () => {
-    const username = process.env.DOCKERHUB_USERNAME;
-    const token = process.env.DOCKERHUB_TOKEN;
-
+describe('DockerHub Search', () => {
     it('should search for images on DockerHub', async () => {
-        const client = new DockerHubClient({ username, token });
-        const data = await client.searchImages('nginx');
+        const data = await searchImages('nginx');
         expect(data).toHaveProperty('count');
         expect(data.count).toBeGreaterThan(0);
         expect(Array.isArray(data.results)).toBe(true);
