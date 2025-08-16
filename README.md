@@ -89,15 +89,43 @@ DOCKER_REGISTRY_BASE=https://registry-1.docker.io
 2. **Personal Access Token**: Recommended for better security
 3. **No Authentication**: For public repositories only
 
-## 🐳 Docker Compose
+## 🐳 Docker Deployment
 
-For local testing with a registry:
+### Quick Start with Docker
+```bash
+# One-command setup (Linux/macOS)
+./docker-setup.sh
 
+# One-command setup (Windows PowerShell)
+.\docker-setup.ps1
+```
+
+### Manual Docker Setup
+```bash
+# 1. Configure environment
+cp .env.example .env
+# Edit .env with your DockerHub credentials
+
+# 2. Build and run
+docker-compose build
+docker-compose up -d
+
+# 3. Verify running
+docker-compose ps
+```
+
+### Docker Compose Configuration
 ```bash
 docker-compose up -d
 ```
 
 This starts:
+- The MCP server in a containerized environment
+- Automatic dependency management
+- Isolated runtime environment
+- Easy scaling and deployment
+
+For detailed Docker deployment instructions, see [Docker Deployment Guide](docs/DOCKER_DEPLOYMENT.md).
 - The MCP server
 - A local Docker registry for testing
 - Redis for caching (future enhancement)
