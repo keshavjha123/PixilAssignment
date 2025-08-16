@@ -1,5 +1,5 @@
 import { z } from "zod";
-import axios from "axios";
+import { estimatePullSize } from "../dockerhubFunctions/pullSizeEstimate";
 
 export const dockerEstimatePullSize = (env: NodeJS.ProcessEnv) => ({
     name: "docker_estimate_pull_size",
@@ -8,69 +8,38 @@ export const dockerEstimatePullSize = (env: NodeJS.ProcessEnv) => ({
     outputSchema: { totalSize: z.number(), layers: z.array(z.any()) },
     handler: async (input: { namespace: string; repository: string; tag: string }) => {
         try {
-            // Get a token for the registry API
+            const result = await estimatePullSize(input.namespace, input.repository, input.tag, env.DOCKERHUB_TOKEN);
             const repo = `${input.namespace}/${input.repository}`;
-            const manifestUrl = `https://registry-1.docker.io/v2/${repo}/manifests/${input.tag}`;
-            const authResp = await axios.get(
-                `https://auth.docker.io/token?service=registry.docker.io&scope=repository:${repo}:pull`
-            );
-            const token = authResp.data.token;
-            // Accept both OCI and Docker manifest types
-            const acceptHeaders = [
-                "application/vnd.oci.image.index.v1+json",
-                "application/vnd.docker.distribution.manifest.list.v2+json",
-                "application/vnd.oci.image.manifest.v1+json",
-                "application/vnd.docker.distribution.manifest.v2+json"
-            ].join(", ");
-            const manifestResp = await axios.get(manifestUrl, {
-                headers: {
-                    Accept: acceptHeaders,
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            let manifest = manifestResp.data;
-            // If manifest is a manifest list or OCI index, pick the first amd64/linux image manifest
-            if ((manifest.mediaType === "application/vnd.docker.distribution.manifest.list.v2+json" ||
-                manifest.mediaType === "application/vnd.oci.image.index.v1+json") && Array.isArray(manifest.manifests)) {
-                const amd64Manifest = manifest.manifests.find((m: any) => m.platform?.architecture === "amd64" && m.platform?.os === "linux");
-                if (amd64Manifest) {
-                    const imageManifestResp = await axios.get(
-                        `https://registry-1.docker.io/v2/${repo}/manifests/${amd64Manifest.digest}`,
-                        {
-                            headers: {
-                                Accept: [
-                                    "application/vnd.oci.image.manifest.v1+json",
-                                    "application/vnd.docker.distribution.manifest.v2+json"
-                                ].join(", "),
-                                Authorization: `Bearer ${token}`
-                            }
-                        }
-                    );
-                    manifest = imageManifestResp.data;
-                }
-            }
-            const layers = manifest.layers || [];
-            const totalSize = layers.reduce((sum: number, l: any) => sum + (l.size || 0), 0);
+            
+            // Convert bytes to MB for better readability
+            const totalSizeMB = (result.totalSize / (1024 * 1024)).toFixed(2);
+            
             return {
                 content: [
                     {
                         type: "text" as const,
-                        text: `Estimated pull size for ${repo}:${input.tag} is ${totalSize} bytes.`
+                        text: `Estimated pull size for ${repo}:${input.tag}: ${totalSizeMB} MB (${result.layers.length} layers)`
                     }
                 ],
-                totalSize,
-                layers
+                structuredContent: {
+                    totalSize: result.totalSize,
+                    layers: result.layers
+                }
             };
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const repo = `${input.namespace}/${input.repository}`;
+            const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
             return {
                 content: [
                     {
                         type: "text" as const,
-                        text: `Failed to estimate pull size: ${err?.response?.data?.detail || err.message}`
+                        text: `Failed to estimate pull size for ${repo}:${input.tag}: ${errorMessage}`
                     }
                 ],
-                totalSize: 0,
-                layers: []
+                structuredContent: {
+                    totalSize: 0,
+                    layers: []
+                }
             };
         }
     }
