@@ -19,6 +19,19 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
+// Initialize smart cache system
+import { globalCache } from './cache/SmartCache';
+import { cachedDockerHubAPI } from './cache/CachedDockerHubAPI';
+
+// Silently initialize cache in background to avoid interfering with MCP startup
+setImmediate(async () => {
+    try {
+        await cachedDockerHubAPI.preloadPopularImages();
+    } catch (error) {
+        // Silent fail - cache preload is optional
+    }
+});
+
 // Helper function to register tools with conditional outputSchema
 function registerTool(server: McpServer, tool: any) {
     const toolSchema: any = {
@@ -52,6 +65,7 @@ async function startServer() {
         const { dockerEstimatePullSize } = await import('./tools/docker_estimate_pull_size');
         const { dockerGetImageHistory } = await import('./tools/docker_get_image_history');
         const { dockerTrackBaseUpdates } = await import('./tools/docker_track_base_updates');
+        const { dockerCacheInfo } = await import('./tools/docker_cache_info');
 
         // Register all tools using the helper function
         registerTool(server, dockerGetStats(process.env));
@@ -69,6 +83,7 @@ async function startServer() {
         registerTool(server, dockerGetImageHistory(process.env));
         registerTool(server, dockerTrackBaseUpdates(process.env));
         registerTool(server, dockerGetImageDetails(process.env));
+        registerTool(server, dockerCacheInfo(process.env));
 
         // Register a dummy tool for testing
         const dummyEchoHandler = async (input: { message: string }) => {
@@ -81,7 +96,7 @@ async function startServer() {
                 ]
             };
         };
-        
+
         server.registerTool(
             "dummy_echo",
             {
