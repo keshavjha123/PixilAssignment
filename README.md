@@ -145,6 +145,8 @@ Add to your Claude Desktop configuration:
       "command": "node",
       "args": ["/path/to/pixil-mcp-server/dist/index.js"],
       "env": {
+        "DOCKERHUB_USERNAME": "your-user-name",
+        "DOCKERHUB_PASSWORD": "your-token-here",
         "DOCKERHUB_TOKEN": "your-token-here"
       }
     }
