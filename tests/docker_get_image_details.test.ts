@@ -8,9 +8,9 @@ describe('docker_get_image_details tool', () => {
         // Use a well-known public image for testing
         const input = { namespace: 'library', repository: 'nginx' };
         const result = await tool.handler(input);
-        expect(result).toHaveProperty('details');
-        expect(result.details).toHaveProperty('name');
-        expect(result.details).toHaveProperty('namespace');
+        expect(result).toHaveProperty('structuredContent');
+        expect(result.structuredContent.results).toHaveProperty('name');
+        expect(result.structuredContent.results).toHaveProperty('namespace');
         expect(result.content[0].text).toMatch(/Details for library\/nginx/);
     });
 });
