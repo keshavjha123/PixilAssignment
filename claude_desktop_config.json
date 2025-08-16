@@ -1,0 +1,15 @@
+{
+    "mcpServers": {
+        "dockerhub": {
+            "command": "node",
+            "args": [
+                "D:\\pdfReader\\PixilAssignment\\PixilAssignment\\dist\\index.js"
+            ],
+            "env": {
+                "DOCKERHUB_USERNAME": "keshavmadhav12",
+                "DOCKERHUB_PASSWORD": "dckr_pat_BL28kKjXplXFx7uoAraKF_V70ac",
+                "DOCKERHUB_TOKEN": "dckr_pat_BL28kKjXplXFx7uoAraKF_V70ac"
+            }
+        }
+    }
+}
