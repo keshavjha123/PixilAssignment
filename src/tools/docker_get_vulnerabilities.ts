@@ -1,5 +1,5 @@
 import { z } from "zod";
-import axios from "axios";
+import { getImageVulnerabilities } from "../dockerhubFunctions/imageVulnerabilities";
 
 export const dockerGetVulnerabilities = (env: NodeJS.ProcessEnv) => ({
     name: "docker_get_vulnerabilities",
@@ -8,40 +8,35 @@ export const dockerGetVulnerabilities = (env: NodeJS.ProcessEnv) => ({
     outputSchema: { vulnerabilities: z.any().nullable() },
     handler: async (input: { namespace: string; repository: string; tag: string }) => {
         try {
-            // DockerHub's API for vulnerabilities is not public for all images.
-            // For official images, try the DockerHub API endpoint (may require credentials and may not always be available)
+            const result = await getImageVulnerabilities(input.namespace, input.repository, input.tag, env.DOCKERHUB_TOKEN);
             const repo = `${input.namespace}/${input.repository}`;
-            const url = `https://hub.docker.com/v2/repositories/${repo}/tags/${input.tag}/images`;
-            const resp = await axios.get(url);
-            const images = resp.data.results || [];
-            // Vulnerabilities may be under 'scan_results' or similar
-            let vulnerabilities = null;
-            for (const image of images) {
-                if (image.scan_results && image.scan_results.vulnerabilities) {
-                    vulnerabilities = image.scan_results.vulnerabilities;
-                    break;
-                }
-            }
+            
             return {
                 content: [
                     {
                         type: "text" as const,
-                        text: vulnerabilities
+                        text: result.vulnerabilities
                             ? `Vulnerabilities found for ${repo}:${input.tag}`
                             : `No vulnerability data available for ${repo}:${input.tag}`
                     }
                 ],
-                vulnerabilities
+                structuredContent: {
+                    vulnerabilities: result.vulnerabilities
+                }
             };
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const repo = `${input.namespace}/${input.repository}`;
+            const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
             return {
                 content: [
                     {
                         type: "text" as const,
-                        text: `Failed to retrieve vulnerabilities: ${err?.response?.data?.detail || err.message}`
+                        text: `Failed to fetch vulnerabilities for ${repo}:${input.tag}: ${errorMessage}`
                     }
                 ],
-                vulnerabilities: null
+                structuredContent: {
+                    vulnerabilities: null
+                }
             };
         }
     }
