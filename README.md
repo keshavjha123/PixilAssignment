@@ -154,6 +154,8 @@ Add to your Claude Desktop configuration:
 }
 ```
 
+### To access a private repository, specify the full repository name in your Claude client configuration (e.g., `keshavmadhav12/keshavprivaterepo`).
+
 ### Cursor/Cline
 
 Configure the MCP server in your IDE settings to enable Docker image analysis capabilities.
