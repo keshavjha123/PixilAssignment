@@ -51,6 +51,11 @@ Add to `claude_desktop_config.json`:
 }
 ```
 
+**⚠️ Important**: 
+- Replace `/absolute/path/to/PixilAssignment` with your actual project path
+- Windows: Use `D:\\\\path\\\\to\\\\PixilAssignment` (double backslashes)
+- macOS/Linux: Use `/home/user/path/to/PixilAssignment`
+
 ## Configuration File Locations
 
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`

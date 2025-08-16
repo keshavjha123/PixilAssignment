@@ -24,7 +24,7 @@
      "mcpServers": {
        "dockerhub-mcp": {
          "command": "node",
-         "args": ["d:\\path\\to\\PixilAssignment\\dist\\index.js"],
+         "args": ["/absolute/path/to/PixilAssignment/dist/index.js"],
          "env": {
            "DOCKERHUB_TOKEN": "your_token_here"
          }
@@ -47,7 +47,7 @@
 1. **Check Server Logs:**
    ```bash
    # Run server directly to see error messages
-   cd d:\pdfReader\PixilAssignment\PixilAssignment
+   cd /path/to/PixilAssignment
    npm run build
    node dist/index.js
    ```

@@ -9,11 +9,11 @@ Add this to your Claude Desktop `claude_desktop_config.json`:
   "mcpServers": {
     "dockerhub": {
       "command": "node",
-      "args": ["D:\\pdfReader\\PixilAssignment\\PixilAssignment\\dist\\index.js"],
-      "cwd": "D:\\pdfReader\\PixilAssignment\\PixilAssignment",
+      "args": ["/absolute/path/to/PixilAssignment/dist/index.js"],
+      "cwd": "/absolute/path/to/PixilAssignment",
       "env": {
-        "DOCKERHUB_USERNAME": "keshavmadhav12",
-        "DOCKERHUB_TOKEN": "dckr_pat_BL28kKjXplXFx7uoAraKF_V70ac"
+        "DOCKERHUB_USERNAME": "your-dockerhub-username",
+        "DOCKERHUB_TOKEN": "dckr_pat_your_personal_access_token"
       }
     }
   }
@@ -58,7 +58,7 @@ Common Error Patterns:
 DOCKERHUB_USERNAME=your-username
 DOCKERHUB_PASSWORD=your-password
 # OR use a personal access token (recommended)
-DOCKERHUB_TOKEN=dckr_pat_1234567890abcdef
+DOCKERHUB_TOKEN=dckr_pat_your_personal_access_token
 
 # Optional: API Configuration
 DOCKERHUB_API_BASE=https://hub.docker.com/v2
@@ -80,12 +80,12 @@ LOG_FORMAT=json
 ### Production Environment Variables
 ```bash
 # For Docker containers
-export DOCKERHUB_TOKEN="dckr_pat_1234567890abcdef"
+export DOCKERHUB_TOKEN="dckr_pat_your_personal_access_token"
 export NODE_ENV="production"
 export LOG_LEVEL="warn"
 
 # For systemd services
-Environment=DOCKERHUB_TOKEN=dckr_pat_1234567890abcdef
+Environment=DOCKERHUB_TOKEN=dckr_pat_your_personal_access_token
 Environment=NODE_ENV=production
 Environment=LOG_LEVEL=warn
 ```
@@ -146,7 +146,7 @@ metadata:
   name: dockerhub-mcp-secrets
 type: Opaque
 stringData:
-  DOCKERHUB_TOKEN: "dckr_pat_1234567890abcdef"
+  DOCKERHUB_TOKEN: "dckr_pat_your_personal_access_token"
 ```
 
 ### Deployment Configuration
