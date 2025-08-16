@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DockerHubClient } from "../dockerhub/client";
+import { listDockerHubRepositories } from "../dockerhubFunctions/listRepositories";
 
 export const dockerListRepositories = (env: NodeJS.ProcessEnv) => ({
     name: "docker_list_repositories",
@@ -7,22 +7,7 @@ export const dockerListRepositories = (env: NodeJS.ProcessEnv) => ({
     inputSchema: { username: z.string() },
     outputSchema: { repositories: z.array(z.any()) },
     handler: async (input: { username: string }) => {
-        const client = new DockerHubClient({
-            username: env.DOCKERHUB_USERNAME,
-            token: env.DOCKERHUB_TOKEN
-        });
-        let repos: any[] = [];
-        let page = 1;
-        let hasNext = true;
-        while (hasNext) {
-            const resp = await client["axios"].get(`/repositories/${input.username}/`, {
-                params: { page, page_size: 100 }
-            });
-            const results = resp.data.results || [];
-            repos = repos.concat(results);
-            hasNext = !!resp.data.next;
-            page++;
-        }
+        const repos = await listDockerHubRepositories(input.username, env.DOCKERHUB_TOKEN);
         return {
             content: [
                 {
@@ -30,7 +15,9 @@ export const dockerListRepositories = (env: NodeJS.ProcessEnv) => ({
                     text: `Found ${repos.length} repositories for user ${input.username}`
                 }
             ],
-            repositories: repos
+            structuredContent: {
+                repositories: repos
+            }
         };
     }
 });
