@@ -1,29 +1,21 @@
 import { z } from "zod";
-import { DockerHubClient } from "../dockerhub/client";
-import axios from "axios";
+import { getManifestDetails } from "../dockerhubFunctions/manifestDetails";
 
 export const dockerGetManifest = (env: NodeJS.ProcessEnv) => ({
     name: "docker_get_manifest",
     description: "Retrieve the manifest for a DockerHub image tag.",
-    inputSchema: { namespace: z.string(), repository: z.string(), tag: z.string() },
-    outputSchema: { manifest: z.any() },
+    inputSchema: { 
+        namespace: z.string(), 
+        repository: z.string(), 
+        tag: z.string() 
+    },
+    outputSchema: { 
+        manifest: z.any().nullable() 
+    },
     handler: async (input: { namespace: string; repository: string; tag: string }) => {
-        // Docker Registry API v2 endpoint for manifests
-        // e.g. https://registry-1.docker.io/v2/library/nginx/manifests/latest
         const repo = `${input.namespace}/${input.repository}`;
-        const url = `https://registry-1.docker.io/v2/${repo}/manifests/${input.tag}`;
         try {
-            // Get a token for the registry API
-            const authResp = await axios.get(
-                `https://auth.docker.io/token?service=registry.docker.io&scope=repository:${repo}:pull`
-            );
-            const token = authResp.data.token;
-            const manifestResp = await axios.get(url, {
-                headers: {
-                    Accept: "application/vnd.docker.distribution.manifest.v2+json",
-                    Authorization: `Bearer ${token}`
-                }
-            });
+            const manifest = await getManifestDetails(input.namespace, input.repository, input.tag, env.DOCKERHUB_TOKEN);
             return {
                 content: [
                     {
@@ -31,17 +23,27 @@ export const dockerGetManifest = (env: NodeJS.ProcessEnv) => ({
                         text: `Manifest for ${repo}:${input.tag}`
                     }
                 ],
-                manifest: manifestResp.data
+                structuredContent: {
+                    manifest
+                }
             };
-        } catch (err: any) {
+        } catch (err: unknown) {
+            let message = 'Unknown error';
+            if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as { message?: unknown }).message === 'string') {
+                message = (err as { message: string }).message;
+            } else {
+                message = String(err);
+            }
             return {
                 content: [
                     {
                         type: "text" as const,
-                        text: `Failed to retrieve manifest: ${err?.response?.data?.errors?.[0]?.message || err.message}`
+                        text: `Failed to retrieve manifest: ${message}`
                     }
                 ],
-                manifest: null
+                structuredContent: {
+                    manifest: null
+                }
             };
         }
     }
