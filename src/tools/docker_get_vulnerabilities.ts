@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getImageVulnerabilities } from "../dockerhubFunctions/imageVulnerabilities";
+import { cachedDockerHubAPI } from "../cache/CachedDockerHubAPI";
 
 export const dockerGetVulnerabilities = (env: NodeJS.ProcessEnv) => ({
     name: "docker_get_vulnerabilities",
@@ -8,9 +9,10 @@ export const dockerGetVulnerabilities = (env: NodeJS.ProcessEnv) => ({
     outputSchema: { vulnerabilities: z.any().nullable() },
     handler: async (input: { namespace: string; repository: string; tag: string }) => {
         try {
-            const result = await getImageVulnerabilities(input.namespace, input.repository, input.tag, env.DOCKERHUB_TOKEN);
+            // Use cached version for vulnerabilities - semi-static data safe to cache
+            const result = await cachedDockerHubAPI.getVulnerabilities(input.namespace, input.repository, input.tag);
             const repo = `${input.namespace}/${input.repository}`;
-            
+
             return {
                 content: [
                     {

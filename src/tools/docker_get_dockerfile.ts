@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getDockerfile } from "../dockerhubFunctions/dockerfileInfo";
+import { cachedDockerHubAPI } from "../cache/CachedDockerHubAPI";
 
 export const dockerGetDockerfile = (env: NodeJS.ProcessEnv) => ({
     name: "docker_get_dockerfile",
@@ -8,9 +9,10 @@ export const dockerGetDockerfile = (env: NodeJS.ProcessEnv) => ({
     outputSchema: { dockerfile: z.string().nullable() },
     handler: async (input: { namespace: string; repository: string; tag: string }) => {
         try {
-            const result = await getDockerfile(input.namespace, input.repository, input.tag, env.DOCKERHUB_TOKEN);
+            // Use cached version for Dockerfile - static data safe to cache
+            const result = await cachedDockerHubAPI.getDockerfile(input.namespace, input.repository, input.tag);
             const repo = `${input.namespace}/${input.repository}`;
-            
+
             return {
                 content: [
                     {

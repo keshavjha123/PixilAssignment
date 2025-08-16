@@ -1,21 +1,23 @@
 import { z } from "zod";
 import { getManifestDetails } from "../dockerhubFunctions/manifestDetails";
+import { cachedDockerHubAPI } from "../cache/CachedDockerHubAPI";
 
 export const dockerGetManifest = (env: NodeJS.ProcessEnv) => ({
     name: "docker_get_manifest",
     description: "Retrieve the manifest for a DockerHub image tag.",
-    inputSchema: { 
-        namespace: z.string(), 
-        repository: z.string(), 
-        tag: z.string() 
+    inputSchema: {
+        namespace: z.string(),
+        repository: z.string(),
+        tag: z.string()
     },
-    outputSchema: { 
-        manifest: z.any().nullable() 
+    outputSchema: {
+        manifest: z.any().nullable()
     },
     handler: async (input: { namespace: string; repository: string; tag: string }) => {
         const repo = `${input.namespace}/${input.repository}`;
         try {
-            const manifest = await getManifestDetails(input.namespace, input.repository, input.tag, env.DOCKERHUB_TOKEN);
+            // Use cached version for manifest details - static data safe to cache
+            const manifest = await cachedDockerHubAPI.getManifest(input.namespace, input.repository, input.tag);
             return {
                 content: [
                     {

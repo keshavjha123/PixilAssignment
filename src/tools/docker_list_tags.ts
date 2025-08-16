@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { listRepositoryTags } from "../dockerhubFunctions/listRepositoryTags";
+import { cachedDockerHubAPI } from "../cache/CachedDockerHubAPI";
 
 export const dockerListTags = (env: NodeJS.ProcessEnv) => ({
     name: "docker_list_tags",
@@ -12,7 +13,8 @@ export const dockerListTags = (env: NodeJS.ProcessEnv) => ({
         let hasNext = true;
         try {
             while (hasNext) {
-                const resp: { results?: { name: string }[]; next?: string | null } = await listRepositoryTags(input.namespace, input.repository, page, 100, env.DOCKERHUB_TOKEN);
+                // Use cached version for tag listing - static data safe to cache
+                const resp: { results?: { name: string }[]; next?: string | null } = await cachedDockerHubAPI.listTags(input.namespace, input.repository, page, 100);
                 const results: { name: string }[] = Array.isArray(resp?.results) ? resp.results : [];
                 tags = tags.concat(results.map((t) => t.name));
                 hasNext = !!resp?.next;

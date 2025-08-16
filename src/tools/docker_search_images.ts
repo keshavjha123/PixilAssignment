@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { searchImages } from "../dockerhubFunctions/searchImages";
 import { searchMyRepositories } from "../dockerhubFunctions/searchMyRepositories";
+import { cachedDockerHubAPI } from "../cache/CachedDockerHubAPI";
 
 interface SearchResults {
     count: number;
@@ -20,32 +21,34 @@ interface SearchResults {
 export const dockerSearchImages = (env: NodeJS.ProcessEnv) => ({
     name: "docker_search_images",
     description: "Search Docker Hub for images, including private repositories when authenticated.",
-    inputSchema: { 
+    inputSchema: {
         query: z.string(),
         include_private: z.boolean().optional().default(true),
         search_mode: z.enum(['all', 'public_only', 'private_only']).optional().default('all')
     },
-    outputSchema: { results: z.object({
-        count: z.number(),
-        results: z.array(z.object({
-            name: z.string(),
-            description: z.string().optional(),
-            is_private: z.boolean().optional(),
-            repo_owner: z.string().optional(),
-            user: z.string().optional(),
-            pull_count: z.number().optional(),
-            star_count: z.number().optional(),
-            last_updated: z.string().optional(),
-            search_score: z.number().optional()
-        })),
-        private_matches: z.number(),
-        public_matches: z.number(),
-        search_mode: z.string()
-    }) },
-    handler: async (input: { 
-        query: string, 
-        include_private?: boolean, 
-        search_mode?: 'all' | 'public_only' | 'private_only' 
+    outputSchema: {
+        results: z.object({
+            count: z.number(),
+            results: z.array(z.object({
+                name: z.string(),
+                description: z.string().optional(),
+                is_private: z.boolean().optional(),
+                repo_owner: z.string().optional(),
+                user: z.string().optional(),
+                pull_count: z.number().optional(),
+                star_count: z.number().optional(),
+                last_updated: z.string().optional(),
+                search_score: z.number().optional()
+            })),
+            private_matches: z.number(),
+            public_matches: z.number(),
+            search_mode: z.string()
+        })
+    },
+    handler: async (input: {
+        query: string,
+        include_private?: boolean,
+        search_mode?: 'all' | 'public_only' | 'private_only'
     }) => {
         let publicResults: SearchResults = { count: 0, results: [] };
         let privateResults: SearchResults = { count: 0, results: [] };
@@ -54,7 +57,8 @@ export const dockerSearchImages = (env: NodeJS.ProcessEnv) => ({
             // Handle public search
             if (input.search_mode !== 'private_only') {
                 try {
-                    publicResults = await searchImages(input.query, 1, 25, undefined); // No token for public
+                    // Use cached version for public search - semi-dynamic data safe to cache briefly
+                    publicResults = await cachedDockerHubAPI.searchImages(input.query, 1, 25);
                 } catch (error) {
                     console.warn('Public search failed:', error);
                 }
