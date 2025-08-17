@@ -807,7 +807,6 @@ This comprehensive roadmap ensures the MCP DockerHub Server evolves from a funct
 - [ ] Batch operation support
 
 ### 📋 Planned
-- [ ] CI/CD pipeline implementation
 - [ ] Container image scanning integration
 - [ ] Metrics and monitoring dashboard
 - [ ] Advanced security features
