@@ -18,7 +18,7 @@ export const dockerGetVulnerabilities = (env: NodeJS.ProcessEnv) => ({
                     {
                         type: "text" as const,
                         text: result.vulnerabilities
-                            ? `Vulnerabilities found for ${repo}:${input.tag}`
+                            ? `Vulnerabilities found for ${repo}:${input.tag} and the vulnerability data is ${JSON.stringify(result.vulnerabilities)}`
                             : `No vulnerability data available for ${repo}:${input.tag}`
                     }
                 ],
