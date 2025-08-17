@@ -1,5 +1,6 @@
 // Enhanced searchImages.ts with better error handling and caching
 import axios, { AxiosError } from 'axios';
+import { getDockerHubAPIToken, createAuthHeaders } from './auth';
 
 interface Repository {
     name: string;
@@ -11,6 +12,11 @@ interface Repository {
     star_count?: number;
     last_updated?: string;
     search_score?: number;
+    // Raw API fields
+    repo_name?: string;
+    short_description?: string;
+    is_automated?: boolean;
+    is_official?: boolean;
 }
 
 interface SearchResult {
@@ -25,14 +31,33 @@ interface SearchResult {
 // Simple in-memory cache for user profiles (optional optimization)
 const userProfileCache = new Map<string, { username: string, expires: number }>();
 
+/**
+ * Normalize repository data from DockerHub API response
+ */
+function normalizeRepository(repo: any): Repository {
+    return {
+        name: repo.repo_name || repo.name,
+        description: repo.short_description || repo.description,
+        is_private: repo.is_private || false,
+        repo_owner: repo.repo_owner || repo.user,
+        user: repo.user || repo.repo_owner,
+        pull_count: repo.pull_count,
+        star_count: repo.star_count,
+        last_updated: repo.last_updated,
+        search_score: repo.search_score,
+        is_automated: repo.is_automated,
+        is_official: repo.is_official
+    };
+}
+
 export async function searchImages(
-    query: string, 
-    page = 1, 
-    pageSize = 25, 
+    query: string,
+    page = 1,
+    pageSize = 25,
     token?: string,
     searchMode: 'all' | 'public_only' | 'private_only' = 'all'
 ): Promise<SearchResult> {
-    
+
     let publicResults: { count: number; results: Repository[] } = { count: 0, results: [] };
     let privateMatches: Repository[] = [];
 
@@ -43,7 +68,10 @@ export async function searchImages(
                 params: { query, page, page_size: pageSize },
                 timeout: 10000,
             });
-            publicResults = resp.data;
+            publicResults = {
+                count: resp.data.count,
+                results: resp.data.results.map(normalizeRepository)
+            };
         } catch (error: unknown) {
             if (error instanceof AxiosError) {
                 // Only try authenticated public search if we got 401 and have token
@@ -51,13 +79,16 @@ export async function searchImages(
                     try {
                         const resp = await axios.get('https://hub.docker.com/v2/search/repositories', {
                             params: { query, page, page_size: pageSize },
-                            headers: { 
+                            headers: {
                                 Authorization: `Bearer ${token}`,
                                 'Content-Type': 'application/json'
                             },
                             timeout: 10000,
                         });
-                        publicResults = resp.data;
+                        publicResults = {
+                            count: resp.data.count,
+                            results: resp.data.results.map(normalizeRepository)
+                        };
                     } catch (authError) {
                         console.warn('Authenticated public search failed:', authError);
                     }
@@ -73,20 +104,24 @@ export async function searchImages(
     // Private repository search (unless public_only mode)
     if (searchMode !== 'public_only' && token) {
         try {
-            // Get username with caching
+            // Get proper JWT token for Docker Hub API v2
+            const jwtToken = await getDockerHubAPIToken(token);
+            const authHeaders = createAuthHeaders(jwtToken, false); // Use JWT format
+
+            // Get username from the current user endpoint
             let username: string;
             const cacheKey = `user_${token.substring(0, 8)}`;
             const cached = userProfileCache.get(cacheKey);
-            
+
             if (cached && cached.expires > Date.now()) {
                 username = cached.username;
             } else {
                 const userResp = await axios.get('https://hub.docker.com/v2/user/', {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: authHeaders,
                     timeout: 5000,
                 });
                 username = userResp.data.username;
-                
+
                 // Cache for 5 minutes
                 userProfileCache.set(cacheKey, {
                     username,
@@ -104,7 +139,7 @@ export async function searchImages(
                 try {
                     const repoResp = await axios.get(`https://hub.docker.com/v2/repositories/${username}/`, {
                         params: { page, page_size: 100 },
-                        headers: { Authorization: `Bearer ${token}` },
+                        headers: authHeaders,
                         timeout: 8000,
                     });
 
@@ -120,12 +155,12 @@ export async function searchImages(
                     hasMore = repoResp.data.next !== null;
                     page++;
                 } catch (pageError) {
-                    console.warn(`Error fetching page ${page}:`, pageError);
+                    // Silently break on page errors to avoid noise
                     break;
                 }
             }
 
-            privateMatches = allMatchingRepos.map((repo: Repository) => ({
+            privateMatches = allMatchingRepos.map((repo: Repository) => normalizeRepository({
                 ...repo,
                 is_private: true,
                 repo_owner: username,
@@ -134,19 +169,33 @@ export async function searchImages(
 
             // Sort by relevance
             privateMatches.sort((a, b) => (b.search_score || 0) - (a.search_score || 0));
-        } catch (error) {
-            console.warn('Private repository search failed:', error);
-            // Log and continue with public results
+        } catch (error: any) {
+            // Silently handle authentication failures without console output
+            // This prevents 401 errors from showing to users
+            // Private search will simply be skipped and only public results returned
         }
     }
 
     // Combine and deduplicate results
     const combinedResults = combineAndDeduplicateResults(privateMatches, publicResults.results || []);
+
+    // For public-only searches, return the full public result count and data
+    if (searchMode === 'public_only' || !token) {
+        return {
+            count: publicResults.count || 0,
+            results: publicResults.results || [],
+            private_matches: 0,
+            public_matches: publicResults.count || 0,
+            search_mode: searchMode
+        };
+    }
+
+    // For searches including private repos, combine counts properly
     const totalCount = privateMatches.length + (publicResults.count || 0);
 
     return {
-        count: Math.min(totalCount, combinedResults.length),
-        results: combinedResults.slice(0, pageSize),
+        count: totalCount,
+        results: combinedResults.slice(0, Math.max(pageSize, 25)), // Ensure at least 25 results if available
         private_matches: privateMatches.length,
         public_matches: publicResults.count || 0,
         search_mode: searchMode
@@ -159,27 +208,27 @@ export async function searchImages(
 function calculateSearchScore(repo: Repository, query: string): number {
     const queryLower = query.toLowerCase();
     let score = 0;
-    
+
     // Exact name match gets highest score
     if (repo.name.toLowerCase() === queryLower) score += 100;
     // Name starts with query
     else if (repo.name.toLowerCase().startsWith(queryLower)) score += 50;
     // Name contains query
     else if (repo.name.toLowerCase().includes(queryLower)) score += 25;
-    
+
     // Description matches
     if (repo.description?.toLowerCase().includes(queryLower)) score += 10;
-    
+
     // Boost score for recently updated repos
     if (repo.last_updated) {
         const daysSinceUpdate = Math.floor((Date.now() - new Date(repo.last_updated).getTime()) / (1000 * 60 * 60 * 24));
         if (daysSinceUpdate < 30) score += 5;
     }
-    
+
     // Boost for popular repos
     if ((repo.pull_count || 0) > 1000) score += 3;
     if ((repo.star_count || 0) > 10) score += 2;
-    
+
     return score;
 }
 
@@ -189,7 +238,7 @@ function calculateSearchScore(repo: Repository, query: string): number {
 function combineAndDeduplicateResults(privateResults: Repository[], publicResults: Repository[]): Repository[] {
     const seen = new Set<string>();
     const combined: Repository[] = [];
-    
+
     // Add private results first (higher priority)
     for (const repo of privateResults) {
         const key = `${repo.repo_owner || repo.user}/${repo.name}`;
@@ -198,7 +247,7 @@ function combineAndDeduplicateResults(privateResults: Repository[], publicResult
             combined.push(repo);
         }
     }
-    
+
     // Add public results if not already seen
     for (const repo of publicResults) {
         const key = `${repo.repo_owner || repo.user}/${repo.name}`;
@@ -207,6 +256,6 @@ function combineAndDeduplicateResults(privateResults: Repository[], publicResult
             combined.push(repo);
         }
     }
-    
+
     return combined;
 }
