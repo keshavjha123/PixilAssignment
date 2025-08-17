@@ -164,7 +164,7 @@ For detailed Docker deployment instructions, see [Docker Deployment Guide](docs/
 }
 ```
 
-### To access a private repository, specify the full repository name in your Claude client configuration (e.g., `keshavmadhav12/keshavprivaterepo`).
+### To access a private repository, specify the full repository name in your Claude Desktop in your conversation (e.g., `keshavmadhav12/keshavprivaterepo`).
 
 ### Cursor/Cline
 
