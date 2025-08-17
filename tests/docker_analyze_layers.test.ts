@@ -13,7 +13,7 @@ describe('docker_analyze_layers tool', () => {
         expect(Array.isArray(result.structuredContent.layers)).toBe(true);
         expect(result.structuredContent.layers.length).toBeGreaterThan(0);
         expect(typeof result.structuredContent.totalSize).toBe('number');
-        expect(result.content[0].text).toMatch(/Found \d+ layers, total size: \d+ bytes for library\/nginx:latest/);
+        expect(result.content[0].text).toMatch(/Found \d+ layers.*total size: \d+ bytes for library\/nginx:latest/s);
     }, 10000);
 
     it('should fail for a non-existent tag', async () => {

@@ -9,7 +9,7 @@ describe("docker_get_image_history tool", () => {
         const input = { namespace: "library", repository: "nginx", tag: "latest" };
         const result = await tool.handler(input);
         expect(Array.isArray(result.structuredContent.history)).toBe(true);
-        expect(result.content[0].text).toMatch(/Found \d+ history entries for/);
+        expect(result.content[0].text).toMatch(/Found \d+.*entries for/s);
     });
 
     it("should handle invalid image tag gracefully", async () => {

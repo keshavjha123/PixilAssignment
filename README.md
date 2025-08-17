@@ -145,7 +145,7 @@ The Docker deployment has been fully tested with:
 - ✅ All 16 MCP tools functioning
 - ✅ Private repository access working
 - ✅ Smart caching and rate limiting active
-- ✅ 25/26 tests passing
+- ✅ 26/26 tests passing
 
 For detailed Docker deployment instructions, see [Docker Deployment Guide](docs/DOCKER_DEPLOYMENT.md).
 

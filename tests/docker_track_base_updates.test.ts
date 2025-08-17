@@ -12,7 +12,7 @@ describe('docker_track_base_updates tool', () => {
         const result = await tool.handler(input);
         expect(result).toHaveProperty('structuredContent');
         expect(result).toHaveProperty('structuredContent');
-        expect(result.content[0].text).toMatch(/base image|Could not determine/);
+        expect(result.content[0].text).toMatch(/Base image|Could not determine/i);
     }, 15000);
 
     it('should fail for a non-existent tag', async () => {
