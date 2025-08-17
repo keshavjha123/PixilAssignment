@@ -78,7 +78,6 @@ export class SmartCache {
         };
 
         this.startCleanupTimer();
-        this.log('basic', 'SmartCache initialized', { config: this.config });
     }
 
     /**

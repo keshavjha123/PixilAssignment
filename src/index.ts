@@ -4,11 +4,6 @@ import path from 'path';
 // Ensure .env is loaded from the project root directory
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
-// Debug: Log credential availability (for debugging only)
-const hasUsername = !!process.env.DOCKERHUB_USERNAME;
-const hasToken = !!process.env.DOCKERHUB_TOKEN;
-console.error(`[DEBUG] Credentials loaded - Username: ${hasUsername}, Token: ${hasToken}`);
-console.error(`[DEBUG] Working directory: ${process.cwd()}`);
 
 // Add fallback for missing credentials
 if (!process.env.DOCKERHUB_TOKEN) {
