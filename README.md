@@ -164,7 +164,9 @@ For detailed Docker deployment instructions, see [Docker Deployment Guide](docs/
 }
 ```
 
-### To access a private repository, specify the full repository name in your Claude Desktop in your conversation (e.g., `keshavmadhav12/keshavprivaterepo`).
+### To access a private repository, specify the full repository name in your Claude Desktop in your conversation (e.g., `keshavmadhav12/keshavprivaterepo`). 
+### Alternatively, you can simply mention your DockerHub username to access your private repositories. Use the `docker_list_repositories` tool to retrieve the exact names of your private repositories.
+
 
 ### Cursor/Cline
 
