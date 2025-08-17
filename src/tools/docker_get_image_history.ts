@@ -15,7 +15,7 @@ export const dockerGetImageHistory = (env: NodeJS.ProcessEnv) => ({
                 content: [
                     {
                         type: "text" as const,
-                        text: `Found ${history.length} history entries for ${repo}:${input.tag}`
+                        text: `Found ${history.length} , history: ${JSON.stringify(history)} entries for ${repo}:${input.tag}`
                     }
                 ],
                 structuredContent: {
