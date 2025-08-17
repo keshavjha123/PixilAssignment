@@ -283,7 +283,7 @@ export class SmartCache {
         fn: () => Promise<any>,
         type: keyof SmartCache['ttlStrategies']
     }>): Promise<void> {
-        this.log('basic', 'Starting cache preload', { functions: preloadFunctions.length });
+        // this.log('basic', 'Starting cache preload', { functions: preloadFunctions.length });
 
         const results = await Promise.allSettled(
             preloadFunctions.map(async ({ key, fn, type }) => {
@@ -299,7 +299,7 @@ export class SmartCache {
         );
 
         const successful = results.filter(r => r.status === 'fulfilled').length;
-        this.log('basic', 'Cache preload completed', { successful, total: preloadFunctions.length });
+        // this.log('basic', 'Cache preload completed', { successful, total: preloadFunctions.length });
     }
 
     private evictLRU(): void {

@@ -34,7 +34,7 @@ function registerTool(server: McpServer, tool: any) {
         inputSchema: tool.inputSchema
     };
     server.registerTool(tool.name, toolSchema, tool.handler);
-    console.log(`✅ Successfully registered ${tool.name}`);
+    // console.log(`✅ Successfully registered ${tool.name}`);
 }
 
 async function startServer() {
