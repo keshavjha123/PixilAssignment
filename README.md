@@ -103,8 +103,15 @@ DOCKER_REGISTRY_BASE=https://registry-1.docker.io
 ```
 
 ### Manual Docker Setup
+
+**Prerequisites:** Make sure you're logged into Docker Hub to avoid rate limiting:
 ```bash
-# 1. Configure environment
+docker login
+```
+
+**For Linux/macOS:**
+```bash
+# 1. Configure environment (only if .env doesn't exist)
 cp .env.example .env
 # Edit .env with your DockerHub credentials
 
@@ -115,6 +122,22 @@ docker-compose up -d
 # 3. Verify running
 docker-compose ps
 ```
+
+**For Windows PowerShell:**
+```powershell
+# 1. Configure environment (only if .env doesn't exist)
+Copy-Item .env.example .env
+# Edit .env with your DockerHub credentials
+
+# 2. Build and run
+docker-compose build
+docker-compose up -d
+
+# 3. Verify running
+docker-compose ps
+```
+
+**⚠️ Note:** Only run the first step if you don't already have a `.env` file with your credentials. The copy command will overwrite existing files.
 
 ### ✅ **Docker Mode - TESTED & VERIFIED**
 
@@ -147,22 +170,6 @@ For detailed Docker deployment instructions, see [Docker Deployment Guide](docs/
 }
 ```
 
-**Docker Mode (Recommended):**
-```json
-{
-  "mcpServers": {
-    "dockerhub-mcp": {
-      "command": "docker-compose",
-      "args": ["exec", "-T", "mcp-server", "node", "dist/index.js"],
-      "cwd": "/absolute/path/to/PixilAssignment",
-      "env": {
-        "DOCKERHUB_USERNAME": "your-username",
-        "DOCKERHUB_TOKEN": "your-token"
-      }
-    }
-  }
-}
-```
 
 ### To access a private repository, specify the full repository name in your Claude Desktop in your conversation (e.g., `keshavmadhav12/keshavprivaterepo`). 
 ### Alternatively, you can simply mention your DockerHub username to access your private repositories. Use the `docker_list_repositories` tool to retrieve the exact names of your private repositories.
