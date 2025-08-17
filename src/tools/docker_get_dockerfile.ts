@@ -18,7 +18,7 @@ export const dockerGetDockerfile = (env: NodeJS.ProcessEnv) => ({
                     {
                         type: "text" as const,
                         text: result.dockerfile
-                            ? `Dockerfile found for ${repo}:${input.tag}`
+                            ? `Dockerfile found for ${repo}:${input.tag} \n\`\`\`dockerfile\n${result.dockerfile}\n\`\`\``
                             : `No Dockerfile available for ${repo}:${input.tag}`
                     }
                 ],

@@ -12,7 +12,7 @@ export const dockerGetTagDetails = (env: NodeJS.ProcessEnv) => ({
             content: [
                 {
                     type: "text" as const,
-                    text: `Details for tag ${input.tag} of ${input.namespace}/${input.repository}`
+                    text: `Details for tag ${input.tag} of ${input.namespace}/${input.repository} and the tag details are ${JSON.stringify(tagDetails)}`
                 }
             ],
             structuredContent: {

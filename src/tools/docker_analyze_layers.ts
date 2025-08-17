@@ -40,7 +40,7 @@ export const dockerAnalyzeLayers = (env: NodeJS.ProcessEnv) => ({
                 content: [
                     {
                         type: "text" as const,
-                        text: `Found ${layers.length} layers, total size: ${totalSize} bytes for ${input.namespace}/${input.repository}:${input.tag}.\n\nLayer details:\n${layerDetails}\n\nTotal size: ${totalSizeInMB} MB (${layers.length} layers)`
+                        text: `Found ${layers.length} layers, layers are: ${JSON.stringify(layers)} total size: ${totalSize} bytes for ${input.namespace}/${input.repository}:${input.tag}.\n\nLayer details:\n${layerDetails}\n\nTotal size: ${totalSizeInMB} MB (${layers.length} layers)`
                     }
                 ],
                 structuredContent: {

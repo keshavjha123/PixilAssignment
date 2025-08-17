@@ -22,7 +22,7 @@ export const dockerGetManifest = (env: NodeJS.ProcessEnv) => ({
                 content: [
                     {
                         type: "text" as const,
-                        text: `Manifest for ${repo}:${input.tag}`
+                        text: `Manifest for ${repo}:${input.tag} manifest is: ${JSON.stringify(manifest)}`
                     }
                 ],
                 structuredContent: {

@@ -14,7 +14,7 @@ export const dockerGetImageDetails = (env: NodeJS.ProcessEnv) => ({
             content: [
                 {
                     type: "text" as const,
-                    text: `Details for ${input.namespace}/${input.repository}`
+                    text: `Details for ${input.namespace}/${input.repository} are: ${JSON.stringify(details)}`
                 }
             ],
             structuredContent: {
