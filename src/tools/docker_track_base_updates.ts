@@ -10,7 +10,7 @@ export const dockerTrackBaseUpdates = (env: NodeJS.ProcessEnv) => ({
         try {
             const result = await trackBaseImageUpdates(input.namespace, input.repository, input.tag, env.DOCKERHUB_TOKEN);
             const repo = `${input.namespace}/${input.repository}`;
-            
+
             let statusText = `Base image analysis for ${repo}:${input.tag}`;
             if (result.baseImage) {
                 statusText += `\nBase image: ${result.baseImage}`;
@@ -23,12 +23,12 @@ export const dockerTrackBaseUpdates = (env: NodeJS.ProcessEnv) => ({
             } else {
                 statusText += "\nNo base image detected (might be built from scratch)";
             }
-            
+
             return {
                 content: [
                     {
                         type: "text" as const,
-                        text: statusText
+                        text: `${statusText} and the complete complete response from the analysis is:\n\n${JSON.stringify(result, null, 2)}`
                     }
                 ],
                 structuredContent: {
