@@ -27,7 +27,7 @@ export const dockerListTags = (env: NodeJS.ProcessEnv) => ({
             content: [
                 {
                     type: "text" as const,
-                    text: `Found ${tags.length} tags for ${input.namespace}/${input.repository}`
+                    text: `Found ${tags.length} tags for ${input.namespace}/${input.repository}${tags.length > 0 ? `:\n${tags.map(tag => `- ${tag}`).join('\n')}` : ''}`
                 }
             ],
             structuredContent: {
