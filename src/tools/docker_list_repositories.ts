@@ -12,7 +12,7 @@ export const dockerListRepositories = (env: NodeJS.ProcessEnv) => ({
             content: [
                 {
                     type: "text" as const,
-                    text: `Found ${repos.length} repositories for user ${input.username}`
+                    text: `Found ${repos.length} repositories for user ${input.username} , repository details are as follows: ${JSON.stringify(repos)}`
                 }
             ],
             structuredContent: {
