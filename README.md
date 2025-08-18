@@ -76,8 +76,7 @@ Create a `.env` file in the project root:
 ```env
 # DockerHub Authentication (for private repositories)
 DOCKERHUB_USERNAME=your-username
-DOCKERHUB_PASSWORD=your-password
-# OR use a personal access token instead of password
+DOCKERHUB_PASSWORD=your-password (same as personal access token)
 DOCKERHUB_TOKEN=your-personal-access-token
 
 # Optional: Custom API endpoints
